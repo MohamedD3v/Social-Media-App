@@ -24,6 +24,7 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
-    "mongoose": "^9.0.1"
+    "mongoose": "^9.0.1",
+    "zod": "^4.1.13"
   }
 }
