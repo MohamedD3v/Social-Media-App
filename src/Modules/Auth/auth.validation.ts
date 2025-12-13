@@ -1,14 +1,22 @@
 import { z } from "zod";
+import { generalFields } from "../../Middlewares/validation.middleware";
+
+export const loginSchema = {
+  body: z.strictObject({
+    email: generalFields.email,
+    password: generalFields.password,
+  }),
+};
 
 export const signupSchema = {
-  body: z
-    .strictObject({
-      username: z.string().min(6).max(20),
-      email: z.email(),
-      password: z.string().min(8),
-      confirmPassword: z.string(),
-      phone: z.string(),
-      gender: z.string(),
+  body: loginSchema.body
+    .extend({
+      username: generalFields.username,
+      // firstName:generalFields.firstName,
+      // lastName:generalFields.lastName,
+      confirmPassword: generalFields.confirmPassword,
+      phone: generalFields.phone,
+      gender: generalFields.gender,
     })
     .superRefine((data, ctx) => {
       if (data.password !== data.confirmPassword) {
@@ -17,14 +25,13 @@ export const signupSchema = {
           path: ["confirmPassword"],
           message: "Password Not Matched !!",
         });
-       
-      };
-      if(data.username?.split(" ").length !== 2){
-            ctx.addIssue({
-                code:"custom",
-                path:["username"],
-                message:"Username must be 2 Words , example:'Mohamed Abdellatef'"
-            })
-        }
+      }
+      if (data.username?.split(" ").length !== 2) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["username"],
+          message: "Username must be 2 Words , example:'Mohamed Abdellatef'",
+        });
+      }
     }),
 };
