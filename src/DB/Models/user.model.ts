@@ -1,4 +1,4 @@
-import { model, models, Schema, Types } from "mongoose";
+import { HydratedDocument, model, models, Schema, Types } from "mongoose";
 
 export enum GenderEnum {
   male = "male",
@@ -22,6 +22,7 @@ export interface IUser {
   resestPasswordOTP?: string;
   phone?: string;
   address?: string;
+  age?:Number;
   gender: GenderEnum;
   role: RoleEnum;
   createdAt: Date;
@@ -50,6 +51,7 @@ export const userSchema = new Schema<IUser>(
     resestPasswordOTP: String,
     phone: String,
     address: String,
+    age: Number ,
     gender: {
       type: String,
       enum: Object.values(GenderEnum),
@@ -72,3 +74,6 @@ userSchema.virtual("username").set(function(value:string){
 })
 
 export const UserModel = models.User || model("User", userSchema);
+
+
+export type HUserDoc = HydratedDocument<IUser>

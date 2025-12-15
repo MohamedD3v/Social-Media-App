@@ -12,11 +12,10 @@ export const signupSchema = {
   body: loginSchema.body
     .extend({
       username: generalFields.username,
-      // firstName:generalFields.firstName,
-      // lastName:generalFields.lastName,
       confirmPassword: generalFields.confirmPassword,
       phone: generalFields.phone,
       gender: generalFields.gender,
+      age:generalFields.age
     })
     .superRefine((data, ctx) => {
       if (data.password !== data.confirmPassword) {

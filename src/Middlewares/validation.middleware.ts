@@ -40,11 +40,14 @@ export const validation = (schema: SchemaType) => {
 
 export const generalFields = {
   username: z.string().min(6).max(20),
-  // firstName:z.string().min(3).max(20),
-  // lastName:z.string().min(3).max(20),
   email: z.email(),
   password: z.string().min(8),
   confirmPassword: z.string(),
   phone: z.string(),
   gender: z.string(),
+  age: z
+    .int()
+    .min(18, { message: "Your age under 18" })
+    .max(80)
+    .optional(),
 };
