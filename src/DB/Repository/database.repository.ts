@@ -2,10 +2,12 @@ import {
   CreateOptions,
   HydratedDocument,
   Model,
+  MongooseUpdateQueryOptions,
   PopulateOptions,
   ProjectionType,
   QueryFilter,
   QueryOptions,
+  UpdateQuery,
 } from "mongoose";
 
 export abstract class DatabaseRepository<TDocument> {
@@ -35,5 +37,21 @@ export abstract class DatabaseRepository<TDocument> {
       doc.populate(options.populate as PopulateOptions[]);
     }
     return await doc.exec();
+  }
+
+  async updateOne({
+    filter,
+    update,
+    options,
+  }: {
+    filter: QueryFilter<TDocument>;
+    update: UpdateQuery<TDocument>;
+    options?: MongooseUpdateQueryOptions<TDocument> | null;
+  }) {
+    return await this.model.updateOne(
+      filter,
+      { ...update, $inc: { __v: 1 } },
+      options
+    );
   }
 }

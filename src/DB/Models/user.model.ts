@@ -17,12 +17,13 @@ export interface IUser {
   username?: string;
   email: string;
   confirmEmailOTP?: string;
+  expireOTP?: Date | undefined;
   confirmedAt?: Date;
   password: string;
-  resestPasswordOTP?: string;
-  phone?: string |undefined;
-  address?: string |undefined;
-  age?: Number |undefined ;
+  resetPasswordOTP?: string;
+  phone?: string | undefined;
+  address?: string | undefined;
+  age?: Number | undefined;
   gender?: GenderEnum | undefined;
   role: RoleEnum;
   createdAt: Date;
@@ -48,7 +49,7 @@ export const userSchema = new Schema<IUser>(
     confirmEmailOTP: String,
     confirmedAt: Date,
     password: { type: String, required: true, minlength: 8, trim: true },
-    resestPasswordOTP: String,
+    resetPasswordOTP: String,
     phone: String,
     address: String,
     age: Number,
@@ -62,6 +63,7 @@ export const userSchema = new Schema<IUser>(
       enum: Object.values(RoleEnum),
       default: RoleEnum.user,
     },
+    expireOTP: Date,
   },
   { timestamps: true, toObject: { virtuals: true }, toJSON: { virtuals: true } }
 );

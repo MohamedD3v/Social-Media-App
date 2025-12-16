@@ -10,6 +10,8 @@ This is a backend for a Social Media Application built with Node.js and Express 
 * MongoDB (Mongoose)
 * Zod Validation
 * Helmet & Rate Limit & Cors
+* Bcrypt
+* NodeMailer
 
 ## APIS EndPoints
 
@@ -17,3 +19,4 @@ This is a backend for a Social Media Application built with Node.js and Express 
 
 * **POST** `api/v1/auth/signup` ==> Register a New User.
 * **POST** `api/v1/auth/login` ==> Login User.
+* **POST** `api/v1/auth/confirm-email` ==> confirmEmailOTP User.

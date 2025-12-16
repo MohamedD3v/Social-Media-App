@@ -48,4 +48,5 @@ export const generalFields = {
   gender: z.enum(GenderEnum).default(GenderEnum.male),
   age: z.int().min(18, { message: "Your age under 18" }).max(80).optional(),
   address: z.string().optional(),
+  otp: z.string().regex(/^\d{6}$/),
 };
