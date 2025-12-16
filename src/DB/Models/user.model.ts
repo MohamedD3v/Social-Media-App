@@ -20,10 +20,10 @@ export interface IUser {
   confirmedAt?: Date;
   password: string;
   resestPasswordOTP?: string;
-  phone?: string;
-  address?: string;
-  age?:Number;
-  gender: GenderEnum;
+  phone?: string |undefined;
+  address?: string |undefined;
+  age?: Number |undefined ;
+  gender?: GenderEnum | undefined;
   role: RoleEnum;
   createdAt: Date;
   updatedAt?: Date;
@@ -51,7 +51,7 @@ export const userSchema = new Schema<IUser>(
     resestPasswordOTP: String,
     phone: String,
     address: String,
-    age: Number ,
+    age: Number,
     gender: {
       type: String,
       enum: Object.values(GenderEnum),
@@ -66,14 +66,16 @@ export const userSchema = new Schema<IUser>(
   { timestamps: true, toObject: { virtuals: true }, toJSON: { virtuals: true } }
 );
 
-userSchema.virtual("username").set(function(value:string){
-    const [firstName , lastName] = value.split(" ") || []
-   this.set({firstName,lastName})
-}).get(function(){
-    return `${this.firstName} ${this.lastName}`
-})
+userSchema
+  .virtual("username")
+  .set(function (value: string) {
+    const [firstName, lastName] = value.split(" ") || [];
+    this.set({ firstName, lastName });
+  })
+  .get(function () {
+    return `${this.firstName} ${this.lastName}`;
+  });
 
 export const UserModel = models.User || model("User", userSchema);
 
-
-export type HUserDoc = HydratedDocument<IUser>
+export type HUserDoc = HydratedDocument<IUser>;

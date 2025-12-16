@@ -8,7 +8,7 @@ import {
   QueryOptions,
 } from "mongoose";
 
-export class DatabaseRepository<TDocument> {
+export abstract class DatabaseRepository<TDocument> {
   constructor(protected readonly model: Model<TDocument>) {}
 
   async create({

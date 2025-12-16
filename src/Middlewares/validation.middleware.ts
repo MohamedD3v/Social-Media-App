@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { BadRequestException } from "../Utils/Response/err.response";
 import { ZodError, ZodType } from "zod";
 import { z } from "zod";
+import { GenderEnum } from "../DB/Models/user.model";
 type KeyReqType = keyof Request;
 
 type SchemaType = Partial<Record<KeyReqType, ZodType>>;
@@ -43,11 +44,8 @@ export const generalFields = {
   email: z.email(),
   password: z.string().min(8),
   confirmPassword: z.string(),
-  phone: z.string(),
-  gender: z.string(),
-  age: z
-    .int()
-    .min(18, { message: "Your age under 18" })
-    .max(80)
-    .optional(),
+  phone: z.string().optional(),
+  gender: z.enum(GenderEnum).default(GenderEnum.male),
+  age: z.int().min(18, { message: "Your age under 18" }).max(80).optional(),
+  address: z.string().optional(),
 };
