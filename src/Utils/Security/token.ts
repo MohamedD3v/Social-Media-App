@@ -1,9 +1,19 @@
 import { verify, sign, Secret, JwtPayload, SignOptions } from "jsonwebtoken";
-import { HUserDoc, RoleEnum } from "../../DB/Models/user.model";
+import { HUserDoc, RoleEnum, UserModel } from "../../DB/Models/user.model";
 import { v4 as uuid } from "uuid";
+import {
+  NotFoundException,
+  UnAuthorziedException,
+} from "../Response/err.response";
+import { UserRepository } from "../../DB/Repository/user.repository";
 export enum SignatureLevelEnum {
   admin = "admin",
   user = "user",
+}
+
+export enum TokenTypeEnum {
+  refresh = "refresh",
+  access = "access",
 }
 
 export const generateToken = async ({
@@ -82,4 +92,29 @@ export const getLoginCredentails = async (
     options: { expiresIn: Number(process.env.REFRESH_EXPIRES_IN), jwtid },
   });
   return { access_token, refresh_token };
+};
+
+export const decodedToken = async ({
+  authorization,
+  tokenType = TokenTypeEnum.access,
+}: {
+  authorization: string;
+  tokenType?: TokenTypeEnum;
+}) => {
+  const userModel = new UserRepository(UserModel);
+  const [bearer, token] = authorization?.split(" ");
+  if (!bearer || !token) throw new UnAuthorziedException("In-valid Token !!");
+  const signatures = await getSignatures(bearer as SignatureLevelEnum);
+  const decoded = await verifyToken({
+    token,
+    secret:
+      tokenType === TokenTypeEnum.access
+        ? signatures.access_token
+        : signatures.refresh_token,
+  });
+  if (!decoded?._id || !decoded.iat)
+    throw new UnAuthorziedException("In-valid Token !!");
+  const user = await userModel.findById({ id: { _id: decoded._id } });
+  if (!user) throw new NotFoundException("User Not Found");
+  return { user, decoded };
 };

@@ -39,6 +39,22 @@ export abstract class DatabaseRepository<TDocument> {
     return await doc.exec();
   }
 
+   async findById({
+    id,
+    select,
+    options,
+  }: {
+    id?: any;
+    select?: ProjectionType<TDocument> | null;
+    options?: QueryOptions<TDocument> | null;
+  }) {
+    const doc = this.model.findById(id).select(select || "");
+    if (options?.populate) {
+      doc.populate(options.populate as PopulateOptions[]);
+    }
+    return await doc.exec();
+  }
+
   async updateOne({
     filter,
     update,

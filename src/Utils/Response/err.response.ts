@@ -9,29 +9,40 @@ export class ApplicationException extends Error {
     message: string,
     public statusCode: number = 400,
     options?: ErrorOptions
-    
   ) {
     super(message, options);
-    this.name=this.constructor.name
+    this.name = this.constructor.name;
   }
 }
 
-export class NotFoundException extends ApplicationException{
-    constructor(message:string ,options?: ErrorOptions ){
-        super(message,404,options)
-    }
+export class NotFoundException extends ApplicationException {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, 404, options);
+  }
 }
 
-export class BadRequestException extends ApplicationException{
-    constructor(message:string ,options?: ErrorOptions ){
-        super(message,400,options)
-    }
+export class BadRequestException extends ApplicationException {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, 400, options);
+  }
 }
 
-export class ConflictException extends ApplicationException{
-    constructor(message:string ,options?: ErrorOptions ){
-        super(message,409,options)
-    }
+export class ConflictException extends ApplicationException {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, 409, options);
+  }
+}
+
+export class UnAuthorziedException extends ApplicationException {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, 401, options);
+  }
+}
+
+export class ForbiddenException extends ApplicationException {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, 403, options);
+  }
 }
 
 export const globalError = (
