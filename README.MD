@@ -13,6 +13,7 @@ This is a backend for a Social Media Application built with Node.js and Express 
 * Bcrypt
 * NodeMailer
 * JsonWebToken(JWT)
+
 ## APIS EndPoints
 
 ### 1. Auth Modules
