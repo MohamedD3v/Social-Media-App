@@ -7,7 +7,9 @@ export const generateHash = async (
   return await hash(plaintext, saltRound);
 };
 
-
-export const compareHash = async(plaintext:string , hashValue:string):Promise<boolean>=>{
-    return await compare(plaintext,hashValue)
-}
+export const compareHash = async (
+  plaintext: string,
+  hashValue: string
+): Promise<boolean> => {
+  return await compare(plaintext, hashValue);
+};

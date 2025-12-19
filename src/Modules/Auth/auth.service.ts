@@ -10,6 +10,7 @@ import { UserRepository } from "../../DB/Repository/user.repository";
 import { compareHash, generateHash } from "../../Utils/Security/hash";
 import { generateOTP } from "../../Utils/Security/generateOTP";
 import { emailEvent } from "../../Utils/Events/email.events";
+import { generateToken, verifyToken } from "../../Utils/Security/token";
 class AuthenticationService {
   private _userModel = new UserRepository(UserModel);
 
@@ -60,10 +61,16 @@ class AuthenticationService {
   login = async (req: Request, res: Response) => {
     const { email, password }: ILoginDto = req.body;
     console.log({ email, password });
-
+       const user = await this._userModel.findOne({ filter: { email } });
+    if (!user) throw new NotFoundException("User Not Found");
+    if (!user.confirmedAt) throw new BadRequestException("Verify Your Account");
+    if (!(await compareHash(password, user.password)))
+      throw new BadRequestException("in-valid email or password");
+    const access_token = await generateToken({payload:{_id:user._id} , secret:"ldajd5de" , options:{expiresIn:3600}})
+    const refresh_token = await generateToken({payload:{_id:user._id} , secret:"ldajd5de" , options:{expiresIn:86400}})
     return res
       .status(200)
-      .json({ message: `Login Successfully, Welcome Back` });
+      .json({ message: `Login Successfully, Welcome Back`,data:{access_token,refresh_token}});
   };
 
   confirmEmail = async (req: Request, res: Response): Promise<Response> => {

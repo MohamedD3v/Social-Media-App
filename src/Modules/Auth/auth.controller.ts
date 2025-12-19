@@ -6,6 +6,6 @@ const router: Router = Router();
 
 router.post("/signup", validation(signupSchema), authService.signup);
 router.post("/login", validation(loginSchema), authService.login);
-router.post("/confirm-email", validation(confirmEmailSchema), authService.confirmEmail);
+router.patch("/confirm-email", validation(confirmEmailSchema), authService.confirmEmail);
 
 export default router;
