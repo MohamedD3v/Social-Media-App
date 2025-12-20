@@ -77,7 +77,7 @@ export const getSignatures = async (signatureLevel: SignatureLevelEnum) => {
 
 export const getLoginCredentails = async (
   user: HUserDoc
-): Promise<{ access_token: string; refresh_token: string }> => {
+): Promise<{ access_token: string; refresh_token: string; jwtid:string }> => {
   const signatureLevel = await getSignatureLevel(user.role);
   const signatures = await getSignatures(signatureLevel);
   const jwtid = uuid();
@@ -91,7 +91,7 @@ export const getLoginCredentails = async (
     secret: signatures.refresh_token,
     options: { expiresIn: Number(process.env.REFRESH_EXPIRES_IN), jwtid },
   });
-  return { access_token, refresh_token };
+  return { access_token, refresh_token , jwtid  };
 };
 
 export const decodedToken = async ({

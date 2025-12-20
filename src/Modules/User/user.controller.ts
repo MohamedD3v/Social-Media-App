@@ -13,5 +13,12 @@ router.get(
   }),
   userService.getProfile
 );
+router.post(
+  "/logout",
+  authentication({
+    tokenType: TokenTypeEnum.refresh,
+    accessRoles: [RoleEnum.user],
+  })
+);
 
 export default router;

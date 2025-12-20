@@ -10,7 +10,8 @@ import { UserRepository } from "../../DB/Repository/user.repository";
 import { compareHash, generateHash } from "../../Utils/Security/hash";
 import { generateOTP } from "../../Utils/Security/generateOTP";
 import { emailEvent } from "../../Utils/Events/email.events";
-import {  getLoginCredentails } from "../../Utils/Security/token";
+import { getLoginCredentails } from "../../Utils/Security/token";
+import { TokenModel } from "../../DB/Models/token.model";
 class AuthenticationService {
   private _userModel = new UserRepository(UserModel);
 
@@ -65,10 +66,19 @@ class AuthenticationService {
     if (!user.confirmedAt) throw new BadRequestException("Verify Your Account");
     if (!(await compareHash(password, user.password)))
       throw new BadRequestException("in-valid email or password");
-    const credentails = await getLoginCredentails(user);
+    const {jwtid,...credentials} = await getLoginCredentails(user);
+    const expiresAt = new Date(
+      Date.now() + Number(process.env.REFRESH_EXPIRES_IN) * 1000
+    );
+    await TokenModel.create({
+      userId: user._id,
+      token: await generateHash(credentials.refresh_token),
+      jwtid: jwtid,
+      expiresAt: expiresAt,
+    });
     return res.status(200).json({
       message: `Login Successfully, Welcome Back`,
-      credentails,
+      credentials,
     });
   };
 
@@ -98,6 +108,8 @@ class AuthenticationService {
       .status(200)
       .json({ message: "Account has been Confirmed Successfully" });
   };
+
+
 }
 
 export default new AuthenticationService();
