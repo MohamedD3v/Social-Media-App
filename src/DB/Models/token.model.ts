@@ -1,4 +1,11 @@
-import { HydratedDocument, model, models, Schema, Types } from "mongoose";
+import {
+  HydratedDocument,
+  Model,
+  model,
+  models,
+  Schema,
+  Types,
+} from "mongoose";
 
 export interface IToken {
   userId: Types.ObjectId;
@@ -21,6 +28,7 @@ export const tokenSchema = new Schema<IToken>(
 
 tokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-export const TokenModel = models.Token || model("Token", tokenSchema);
+export const TokenModel =
+  (models.Token as Model<IToken>) || model("Token", tokenSchema);
 
 export type HTokenDocument = HydratedDocument<IToken>;
