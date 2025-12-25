@@ -2,10 +2,14 @@ import { verify, sign, Secret, JwtPayload, SignOptions } from "jsonwebtoken";
 import { HUserDoc, RoleEnum, UserModel } from "../../DB/Models/user.model";
 import { v4 as uuid } from "uuid";
 import {
+  BadRequestException,
   NotFoundException,
   UnAuthorziedException,
 } from "../Response/err.response";
 import { UserRepository } from "../../DB/Repository/user.repository";
+import { TokenRepository } from "../../DB/Repository/token.repository";
+import { TokenModel } from "../../DB/Models/token.model";
+import { generateHash } from "./hash";
 export enum SignatureLevelEnum {
   admin = "admin",
   user = "user",
@@ -14,6 +18,11 @@ export enum SignatureLevelEnum {
 export enum TokenTypeEnum {
   refresh = "refresh",
   access = "access",
+}
+
+export enum LogoutEnum {
+  only = "only",
+  all = "all",
 }
 
 export const generateToken = async ({
@@ -77,7 +86,7 @@ export const getSignatures = async (signatureLevel: SignatureLevelEnum) => {
 
 export const getLoginCredentails = async (
   user: HUserDoc
-): Promise<{ access_token: string; refresh_token: string; jwtid:string }> => {
+): Promise<{ access_token: string; refresh_token: string }> => {
   const signatureLevel = await getSignatureLevel(user.role);
   const signatures = await getSignatures(signatureLevel);
   const jwtid = uuid();
@@ -91,7 +100,7 @@ export const getLoginCredentails = async (
     secret: signatures.refresh_token,
     options: { expiresIn: Number(process.env.REFRESH_EXPIRES_IN), jwtid },
   });
-  return { access_token, refresh_token , jwtid  };
+  return { access_token, refresh_token };
 };
 
 export const decodedToken = async ({
@@ -102,6 +111,8 @@ export const decodedToken = async ({
   tokenType?: TokenTypeEnum;
 }) => {
   const userModel = new UserRepository(UserModel);
+  const tokenModel = new TokenRepository(TokenModel);
+
   const [bearer, token] = authorization?.split(" ");
   if (!bearer || !token) throw new UnAuthorziedException("In-valid Token !!");
   const signatures = await getSignatures(bearer as SignatureLevelEnum);
@@ -114,7 +125,27 @@ export const decodedToken = async ({
   });
   if (!decoded?._id || !decoded.iat)
     throw new UnAuthorziedException("In-valid Token !!");
-  const user = await userModel.findById({ id: { _id: decoded._id } });
+  if (await tokenModel.findOne({ filter: { jti: decoded.jti as string } }))
+    throw new NotFoundException("Token Not Avaiable or Revoked");
+  const user = await userModel.findOne({ filter: { _id: decoded._id } });
   if (!user) throw new NotFoundException("User Not Found");
+  if ((user.changeCredientialsTime?.getTime() || 0) > decoded.iat * 1000)
+    throw new UnAuthorziedException("Logged Out From All Devices");
   return { user, decoded };
+};
+
+export const revokeToken = async (decoded: JwtPayload) => {
+  const tokenModel = new TokenRepository(TokenModel);
+  const [results] =
+    (await tokenModel.create({
+      data: [
+        {
+          jti: decoded.jti as string,
+          expiresIn: decoded.exp as number,
+          userId: decoded._id,
+        },
+      ],
+    })) || [];
+  if (!results) throw new BadRequestException("Fail to revoke token");
+  return results;
 };

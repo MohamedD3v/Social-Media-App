@@ -19,12 +19,13 @@ export interface IUser {
   confirmEmailOTP?: string;
   expireOTP?: Date | undefined;
   confirmedAt?: Date;
+  changeCredientialsTime: Date;
   password: string;
   resetPasswordOTP?: string;
   phone?: string | undefined;
   address?: string | undefined;
   age?: Number | undefined;
-  gender?: GenderEnum | undefined;
+  gender?: GenderEnum;
   role: RoleEnum;
   createdAt: Date;
   updatedAt?: Date;
@@ -48,6 +49,7 @@ export const userSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true, trim: true },
     confirmEmailOTP: String,
     confirmedAt: Date,
+    changeCredientialsTime: Date,
     password: { type: String, required: true, minlength: 8, trim: true },
     resetPasswordOTP: String,
     phone: String,

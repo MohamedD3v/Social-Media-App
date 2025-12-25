@@ -8,7 +8,7 @@
   },
   "author": "Mohamed_Mahmoud",
   "license": "ISC",
-  "description": "",
+  "description": "This is a backend for a Social Media Application built with Node.js and Express and TypeScript.",
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
@@ -34,5 +34,14 @@
     "nodemailer": "^7.0.11",
     "uuid": "^13.0.0",
     "zod": "^4.1.13"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MohamedD3v/Social-Media-App.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/MohamedD3v/Social-Media-App/issues"
+  },
+  "homepage": "https://github.com/MohamedD3v/Social-Media-App#readme"
 }

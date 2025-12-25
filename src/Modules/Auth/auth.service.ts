@@ -5,17 +5,12 @@ import {
   BadRequestException,
   ConflictException,
   NotFoundException,
-  UnAuthorziedException,
 } from "../../Utils/Response/err.response";
 import { UserRepository } from "../../DB/Repository/user.repository";
 import { compareHash, generateHash } from "../../Utils/Security/hash";
 import { generateOTP } from "../../Utils/Security/generateOTP";
 import { emailEvent } from "../../Utils/Events/email.events";
-import {
-  decodedToken,
-  getLoginCredentails,
-  TokenTypeEnum,
-} from "../../Utils/Security/token";
+import { getLoginCredentails } from "../../Utils/Security/token";
 import { TokenModel } from "../../DB/Models/token.model";
 class AuthenticationService {
   private _userModel = new UserRepository(UserModel);
@@ -73,16 +68,7 @@ class AuthenticationService {
     if (!user.confirmedAt) throw new BadRequestException("Verify Your Account");
     if (!(await compareHash(password, user.password)))
       throw new BadRequestException("in-valid email or password");
-    const { jwtid, ...credentials } = await getLoginCredentails(user);
-    const expiresAt = new Date(
-      Date.now() + Number(process.env.REFRESH_EXPIRES_IN) * 1000
-    );
-    await TokenModel.create({
-      userId: user._id,
-      token: await generateHash(credentials.refresh_token),
-      jwtid: jwtid,
-      expiresAt: expiresAt,
-    });
+    const credentials = await getLoginCredentails(user);
     return res.status(200).json({
       message: `Login Successfully, Welcome Back`,
       credentials,
@@ -114,52 +100,6 @@ class AuthenticationService {
     return res
       .status(200)
       .json({ message: "Account has been Confirmed Successfully" });
-  };
-
-  refreshToken = async (req: Request, res: Response) => {
-    const { authorization } = req.headers;
-    if (!authorization) throw new BadRequestException("Token is Required!!");
-    const { user, decoded } = await decodedToken({
-      authorization: authorization,
-      tokenType: TokenTypeEnum.refresh,
-    });
-    if (!decoded.jti) throw new UnAuthorziedException("Invalid Token");
-    const token = await TokenModel.findOne({
-      jwtid: decoded.jti,
-      userId: user._id,
-    });
-    if (!token) {
-      await TokenModel.deleteMany({ userId: user._id });
-      throw new UnAuthorziedException(
-        "Please Login Agian to Take Another Token"
-      );
-    }
-    const [bearer, splitToken] = authorization.split(" ");
-    if (!splitToken) throw new BadRequestException("In-valid Token Format");
-
-    const isMatch = await compareHash(splitToken, token.token);
-    if (!isMatch) throw new UnAuthorziedException("In-valid token");
-    await TokenModel.deleteOne({ _id: token._id });
-    const { jwtid, ...credentials } = await getLoginCredentails(user);
-    const expiresAt = new Date(
-      Date.now() + Number(process.env.REFRESH_EXPIRES_IN) * 1000
-    );
-    await TokenModel.create({
-      userId: user._id,
-      token: await generateHash(credentials.refresh_token),
-      jwtid: jwtid,
-      expiresAt: expiresAt,
-    });
-    return res
-      .status(200)
-      .json({ message: "Token has been Refreshed", credentials });
-  };
-  logout = async (req: Request, res: Response): Promise<Response> => {
-    if (!req.decoded || !req.decoded.jti)
-      throw new UnAuthorziedException("In-valid Session");
-    const { jti } = req.decoded;
-    await TokenModel.deleteOne({ jwtid: jti });
-    return res.status(200).json({ message: "Logged out Successfully" });
   };
 }
 
