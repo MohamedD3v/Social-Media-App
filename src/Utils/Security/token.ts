@@ -9,7 +9,6 @@ import {
 import { UserRepository } from "../../DB/Repository/user.repository";
 import { TokenRepository } from "../../DB/Repository/token.repository";
 import { TokenModel } from "../../DB/Models/token.model";
-import { generateHash } from "./hash";
 export enum SignatureLevelEnum {
   admin = "admin",
   user = "user",

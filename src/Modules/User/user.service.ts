@@ -9,6 +9,11 @@ import { JwtPayload } from "jsonwebtoken";
 import { UpdateQuery } from "mongoose";
 import { IUser, UserModel } from "../../DB/Models/user.model";
 import { UserRepository } from "../../DB/Repository/user.repository";
+import {
+  uploadFile,
+  uploadFiles,
+  uploadLargeFile,
+} from "../../Utils/Multer/s3.config";
 
 class UserService {
   private _userModel = new UserRepository(UserModel);
@@ -50,6 +55,36 @@ class UserService {
     return res.status(200).json({
       message: "Token has been Refreshed",
       ...credentials,
+    });
+  };
+  profileImage = async (req: Request, res: Response): Promise<Response> => {
+    // const Key = await uploadFile({
+    //   path: `users/${req.decoded?._id}`,
+    //   file: req.file as Express.Multer.File,
+    // });
+
+    const Key = await uploadLargeFile({
+      path: `users/${req.decoded?._id}`,
+      file: req.file as Express.Multer.File,
+    });
+
+    await this._userModel.updateOne({
+      filter: { _id: req.decoded?._id },
+      update: { profileImage: Key },
+    });
+    return res.status(200).json({
+      message: "Image has been Uploaded Successfully",
+    });
+  };
+
+  coverImages = async (req: Request, res: Response): Promise<Response> => {
+    const urls = await uploadFiles({
+      files: req.files as Express.Multer.File[],
+      path: `users/${req.decoded?._id}/cover`,
+    });
+    return res.status(200).json({
+      message: "Image has been Uploaded Successfully",
+      urls,
     });
   };
 }
