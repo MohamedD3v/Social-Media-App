@@ -28,6 +28,7 @@ export interface IUser {
   gender?: GenderEnum;
   role: RoleEnum;
   profileImage: string;
+  coverImages: string[];
   createdAt: Date;
   updatedAt?: Date;
 }
@@ -68,6 +69,7 @@ export const userSchema = new Schema<IUser>(
     },
     expireOTP: Date,
     profileImage: String,
+    coverImages: String,
   },
   { timestamps: true, toObject: { virtuals: true }, toJSON: { virtuals: true } }
 );

@@ -10,6 +10,7 @@ import { UpdateQuery } from "mongoose";
 import { IUser, UserModel } from "../../DB/Models/user.model";
 import { UserRepository } from "../../DB/Repository/user.repository";
 import {
+  createPresignedUrl,
   uploadFile,
   uploadFiles,
   uploadLargeFile,
@@ -63,17 +64,28 @@ class UserService {
     //   file: req.file as Express.Multer.File,
     // });
 
-    const Key = await uploadLargeFile({
-      path: `users/${req.decoded?._id}`,
-      file: req.file as Express.Multer.File,
-    });
+    // const Key = await uploadLargeFile({
+    //   path: `users/${req.decoded?._id}`,
+    //   file: req.file as Express.Multer.File,
+    // });
 
+    const {
+      ContentType,
+      originalname,
+    }: { ContentType: string; originalname: string } = req.body;
+    const { url, Key } = await createPresignedUrl({
+      ContentType,
+      originalname,
+      path: `users/${req.decoded?._id}/profile`,
+    });
     await this._userModel.updateOne({
       filter: { _id: req.decoded?._id },
       update: { profileImage: Key },
     });
     return res.status(200).json({
       message: "Image has been Uploaded Successfully",
+      url,
+      Key,
     });
   };
 

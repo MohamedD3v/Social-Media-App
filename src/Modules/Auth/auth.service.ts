@@ -11,7 +11,6 @@ import { compareHash, generateHash } from "../../Utils/Security/hash";
 import { generateOTP } from "../../Utils/Security/generateOTP";
 import { emailEvent } from "../../Utils/Events/email.events";
 import { getLoginCredentails } from "../../Utils/Security/token";
-import { TokenModel } from "../../DB/Models/token.model";
 class AuthenticationService {
   private _userModel = new UserRepository(UserModel);
 
