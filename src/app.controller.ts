@@ -1,4 +1,4 @@
-import express, { application } from "express";
+import express from "express";
 import type { Express, Request, Response } from "express";
 import helmet from "helmet";
 import cors from "cors";
@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import { configDotenv } from "dotenv";
 import authRouter from "./Modules/Auth/auth.controller";
 import userRouter from "./Modules/User/user.controller";
+import postRouter from "./Modules/Post/post.controller";
 import {
   BadRequestException,
   globalError,
@@ -81,6 +82,7 @@ export const bootstrap = async () => {
   });
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1/user", userRouter);
+  app.use("/api/v1/post", postRouter);
   app.use("{/*Will}", (req: Request, res: Response) => {
     return res.status(404).json({ message: "Page Not Found" });
   });

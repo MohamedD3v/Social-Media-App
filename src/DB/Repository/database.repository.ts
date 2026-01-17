@@ -1,5 +1,6 @@
 import {
   CreateOptions,
+  DeleteResult,
   HydratedDocument,
   Model,
   MongooseUpdateQueryOptions,
@@ -39,7 +40,7 @@ export abstract class DatabaseRepository<TDocument> {
     return await doc.exec();
   }
 
-   async findById({
+  async findById({
     id,
     select,
     options,
@@ -69,5 +70,33 @@ export abstract class DatabaseRepository<TDocument> {
       { ...update, $inc: { __v: 1 } },
       options
     );
+  }
+  async deleteOne({
+    filter,
+  }: {
+    filter: QueryFilter<TDocument>;
+  }): Promise<DeleteResult> {
+    return await this.model.deleteOne(filter);
+  }
+  async deleteMany({
+    filter,
+  }: {
+    filter: QueryFilter<TDocument>;
+  }): Promise<DeleteResult> {
+    return await this.model.deleteMany(filter);
+  }
+  async findOneAndDelete({
+    filter,
+  }: {
+    filter: QueryFilter<TDocument>;
+  }): Promise<HydratedDocument<TDocument> | null> {
+    return await this.model.findOneAndDelete(filter);
+  }
+  async insertMany({
+    data,
+  }: {
+    data: Partial<TDocument>[];
+  }): Promise<HydratedDocument<TDocument>[]> {
+    return (await this.model.insertMany(data)) as HydratedDocument<TDocument>[];
   }
 }

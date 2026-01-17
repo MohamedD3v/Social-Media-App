@@ -1,4 +1,15 @@
-import { HydratedDocument, model, models, Schema, Types } from "mongoose";
+import {
+  HydratedDocument,
+  model,
+  models,
+  Schema,
+  Types,
+  UpdateQuery,
+} from "mongoose";
+import { TokenRepository } from "../Repository/token.repository";
+import { TokenModel } from "./token.model";
+import { generateHash } from "../../Utils/Security/hash";
+import { emailEvent } from "../../Utils/Events/email.events";
 
 export enum GenderEnum {
   male = "male",
@@ -16,6 +27,7 @@ export interface IUser {
   lastName: string;
   username?: string;
   email: string;
+  slug: string;
   confirmEmailOTP?: string;
   expireOTP?: Date | undefined;
   confirmedAt?: Date;
@@ -48,6 +60,12 @@ export const userSchema = new Schema<IUser>(
       maxLength: 20,
       trim: true,
     },
+    slug: {
+      type: String,
+      required: true,
+      minLength: 3,
+      maxLength: 41,
+    },
     email: { type: String, required: true, unique: true, trim: true },
     confirmEmailOTP: String,
     confirmedAt: Date,
@@ -78,12 +96,65 @@ userSchema
   .virtual("username")
   .set(function (value: string) {
     const [firstName, lastName] = value.split(" ") || [];
-    this.set({ firstName, lastName });
+    this.set({ firstName, lastName, slug: value.replaceAll(/\s+/g, "_") });
   })
   .get(function () {
     return `${this.firstName} ${this.lastName}`;
   });
 
-export const UserModel = models.User || model("User", userSchema);
+userSchema.pre(
+  "save",
+  async function (
+    this: HUserDoc & { wasNew: boolean; confirmEmailPlainOTP?: string }
+  ) {
+    this.wasNew = this.isNew;
+    if (this.isModified("password")) {
+      this.password = await generateHash(this.password);
+    }
+    if (this.isModified("confirmEmailOTP")) {
+      this.confirmEmailPlainOTP = this.confirmEmailOTP as string;
+      this.confirmEmailOTP = await generateHash(this.confirmEmailOTP as string);
+    }
+  }
+);
+userSchema.post("save", async function () {
+  const that = this as unknown as HUserDoc & {
+    wasNew: boolean;
+    confirmEmailPlainOTP?: string;
+  };
+  if (that.wasNew && that.confirmEmailPlainOTP) {
+    await emailEvent.emit("confirmEmail", {
+      to: this.email,
+      username: this.username,
+      otp: that.confirmEmailPlainOTP,
+    });
+  }
+});
+userSchema.pre("updateOne", async function () {
+  const update = this.getUpdate() as UpdateQuery<HUserDoc>;
+  if (update.freezedAt) {
+    this.setUpdate({ ...update, changeCredientialsTime: new Date() });
+  }
+});
+userSchema.pre("updateOne", async function () {
+  const query = this.getQuery();
+  const update = this.getUpdate() as UpdateQuery<HUserDoc>;
+  if (update["$set"].changeCredientialsTime) {
+    const tokenModel = new TokenRepository(TokenModel);
+    await tokenModel.deleteMany({ filter: { userId: query._id } });
+  }
+});
+userSchema.pre("findOneAndDelete", async function () {
+  const query = this.getQuery();
+  const tokenModel = new TokenRepository(TokenModel);
+  await tokenModel.deleteMany({ filter: { userId: query._id } });
+});
+userSchema.pre("insertMany", async function (docs) {
+  for (const doc of docs) {
+    doc.password = await generateHash(doc.password);
+  }
+});
+
+export const UserModel = models.User || model<IUser>("User", userSchema);
 
 export type HUserDoc = HydratedDocument<IUser>;

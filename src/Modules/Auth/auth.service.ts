@@ -7,9 +7,8 @@ import {
   NotFoundException,
 } from "../../Utils/Response/err.response";
 import { UserRepository } from "../../DB/Repository/user.repository";
-import { compareHash, generateHash } from "../../Utils/Security/hash";
+import { compareHash } from "../../Utils/Security/hash";
 import { generateOTP } from "../../Utils/Security/generateOTP";
-import { emailEvent } from "../../Utils/Events/email.events";
 import { getLoginCredentails } from "../../Utils/Security/token";
 class AuthenticationService {
   private _userModel = new UserRepository(UserModel);
@@ -40,8 +39,8 @@ class AuthenticationService {
         {
           username,
           email,
-          password: await generateHash(password),
-          confirmEmailOTP: await generateHash(otp),
+          password,
+          confirmEmailOTP: `${otp}`,
           expireOTP: expiresAt,
           phone,
           gender,
@@ -50,11 +49,6 @@ class AuthenticationService {
         },
       ],
       options: { validateBeforeSave: true },
-    });
-    await emailEvent.emit("confirmEmail", {
-      to: email,
-      username,
-      otp,
     });
     return res
       .status(201)
