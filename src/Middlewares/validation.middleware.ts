@@ -3,6 +3,7 @@ import { BadRequestException } from "../Utils/Response/err.response";
 import { ZodError, ZodType } from "zod";
 import { z } from "zod";
 import { GenderEnum } from "../DB/Models/user.model";
+import { Types } from "mongoose";
 type KeyReqType = keyof Request;
 
 type SchemaType = Partial<Record<KeyReqType, ZodType>>;
@@ -49,4 +50,32 @@ export const generalFields = {
   age: z.int().min(18, { message: "Your age under 18" }).max(80).optional(),
   address: z.string().optional(),
   otp: z.string().regex(/^\d{6}$/),
+  file: function (mimetype: string[]) {
+    return z
+      .strictObject({
+        fieldname: z.string(),
+        originalname: z.string(),
+        encoding: z.string(),
+        mimetype: z.enum(mimetype),
+        buffer: z.any().optional(),
+        path: z.string().optional(),
+        size: z.number(),
+      })
+      .refine(
+        (data) => {
+          return data.path || data.buffer;
+        },
+        {
+          error: "Please Add a File",
+        },
+      );
+  },
+  id: z.string().refine(
+    (data) => {
+      return Types.ObjectId.isValid(data);
+    },
+    {
+      error: "In-valid tag Id",
+    },
+  ),
 };

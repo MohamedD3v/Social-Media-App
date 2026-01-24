@@ -68,7 +68,7 @@ export abstract class DatabaseRepository<TDocument> {
     return await this.model.updateOne(
       filter,
       { ...update, $inc: { __v: 1 } },
-      options
+      options,
     );
   }
   async deleteOne({
@@ -98,5 +98,67 @@ export abstract class DatabaseRepository<TDocument> {
     data: Partial<TDocument>[];
   }): Promise<HydratedDocument<TDocument>[]> {
     return (await this.model.insertMany(data)) as HydratedDocument<TDocument>[];
+  }
+  async find({
+    filter,
+    select,
+    options,
+  }: {
+    filter: QueryFilter<TDocument>;
+    select?: ProjectionType<TDocument> | null;
+    options?: QueryOptions<TDocument> | null;
+  }) {
+    const doc = this.model.find(filter).select(select || "");
+    if (options?.populate) {
+      doc.populate(options.populate as PopulateOptions[]);
+    }
+    if (options?.limit) {
+      doc.limit(options?.limit);
+    }
+    if (options?.skip) {
+      doc.skip(options.skip);
+    }
+    return await doc.exec();
+  }
+  async findOneAndUpdate({
+    filter,
+    update,
+    options,
+  }: {
+    filter: QueryFilter<TDocument>;
+    update: UpdateQuery<TDocument>;
+    options?: MongooseUpdateQueryOptions<TDocument> | null;
+  }) {
+    return await this.model.findOneAndUpdate(filter, { ...update }, options);
+  }
+  async paginate({
+    filter = {},
+    select = {},
+    options = {},
+    page = 1,
+    size = 5,
+  }: {
+    filter?: QueryFilter<TDocument>;
+    select?: ProjectionType<TDocument> | undefined;
+    options?: QueryOptions<TDocument> | undefined;
+    page?: number;
+    size?: number;
+  }) {
+    page = Math.floor(page < 1 ? 1 : page);
+    options.limit = Math.floor(size < 1 || !size ? 5 : size);
+    options.skip = (page - 1) * options.limit;
+    let docsCount: number | undefined = undefined;
+    let pages: number | undefined = undefined;
+    docsCount = await this.model.countDocuments(filter);
+    pages = Math.ceil(docsCount / options.limit);
+
+    const results = await this.find({ filter, select, options });
+    return await {
+      currentPage: page,
+      limit: options.limit,
+      docsCount,
+      pages,
+      results,
+    };
   }
 }
