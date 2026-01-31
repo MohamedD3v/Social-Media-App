@@ -27,6 +27,7 @@
     "@aws-sdk/client-s3": "^3.958.0",
     "@aws-sdk/lib-storage": "^3.958.0",
     "@aws-sdk/s3-request-presigner": "^3.968.0",
+    "@types/socket.io": "^3.0.1",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -37,6 +38,7 @@
     "mongoose": "^9.0.1",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.11",
+    "socket.io": "^4.8.3",
     "uuid": "^13.0.0",
     "zod": "^4.1.13"
   },

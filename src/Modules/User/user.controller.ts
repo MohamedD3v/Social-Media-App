@@ -10,15 +10,16 @@ import {
   fileValidation,
   StorageEnum,
 } from "../../Utils/Multer/cloud.multer";
+import chatRouter from "../Chat/chat.controller";
 const router: Router = Router();
-
+router.use("/:userId/chat", chatRouter);
 router.get(
   "/profile",
   authentication({
     tokenType: TokenTypeEnum.access,
     accessRoles: [RoleEnum.user],
   }),
-  userService.getProfile
+  userService.getProfile,
 );
 router.post(
   "/logout",
@@ -27,7 +28,7 @@ router.post(
     accessRoles: [RoleEnum.user],
   }),
   validation(logoutSchema),
-  userService.logout
+  userService.logout,
 );
 router.post(
   "/refresh-token",
@@ -35,7 +36,7 @@ router.post(
     tokenType: TokenTypeEnum.refresh,
     accessRoles: [RoleEnum.user, RoleEnum.admin],
   }),
-  userService.refreshToken
+  userService.refreshToken,
 );
 
 router.patch(
@@ -49,7 +50,7 @@ router.patch(
     storageApproch: StorageEnum.memory,
     maxSizeMB: 10,
   }).single("attachment"),
-  userService.profileImage
+  userService.profileImage,
 );
 
 router.patch(
@@ -62,8 +63,8 @@ router.patch(
     validation: [...fileValidation.images],
     storageApproch: StorageEnum.memory,
     maxSizeMB: 10,
-  }).array("attachments" , 4),
-  userService.coverImages
+  }).array("attachments", 4),
+  userService.coverImages,
 );
 
 export default router;

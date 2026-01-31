@@ -20,6 +20,7 @@ import {
 } from "./Utils/Multer/s3.config";
 import { promisify } from "node:util";
 import { pipeline } from "node:stream";
+import { intialize } from "./Modules/Gateway/gateway";
 configDotenv({ path: "./config/.env.dev" });
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -39,7 +40,7 @@ export const bootstrap = async () => {
   app.use(helmet());
   app.use(limiter);
   await connectDB();
-  app.get("/", (req: Request, res: Response) => {
+  app.get("/test", (req: Request, res: Response) => {
     return res.status(200).json({ message: "Test Message" });
   });
   app.get("/uploads/presign/*path", async (req, res) => {
@@ -56,17 +57,17 @@ export const bootstrap = async () => {
     if (!responseS3.Body) throw new BadRequestException("file not found");
     res.setHeader(
       "Content-Type",
-      responseS3.ContentType || "application/octet-stream"
+      responseS3.ContentType || "application/octet-stream",
     );
     if (download) {
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename="${download}"`
+        `attachment; filename="${download}"`,
       );
     }
     return await createS3WriteStream(
       responseS3.Body as NodeJS.ReadableStream,
-      res
+      res,
     );
   });
   app.get("/delete-file-s3", async (req: Request, res: Response) => {
@@ -87,7 +88,8 @@ export const bootstrap = async () => {
     return res.status(404).json({ message: "Page Not Found" });
   });
   app.use(globalError);
-  app.listen(port, () => {
+  const httpServer = app.listen(port, () => {
     console.log(`Server is Running ON http://localhost:${port}`);
   });
+  intialize(httpServer);
 };
